@@ -9,6 +9,70 @@
 #import "ARHelper.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <simd/types.h>
+
+/************************************************************************************************************************
+ 点击屏幕响应顺序:
+ 1. - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+
+ 2. - (void)session:(ARSession *)session didAddAnchors:(NSArray<ARAnchor *> *)anchors
+
+ 如果没有实现- (nullable SKNode *)view:(ARSKView *)view nodeForAnchor:(ARAnchor *)anchor或- (nullable SCNNode
+ *)renderer:(id<SCNSceneRenderer>)renderer nodeForAnchor:(ARAnchor *)anchor, 第三步可以跳过
+
+ 3. 2D视图响应 - (nullable SKNode *)view:(ARSKView *)view nodeForAnchor:(ARAnchor *)anchor
+    3D视图响应 - (nullable SCNNode *)renderer:(id<SCNSceneRenderer>)renderer nodeForAnchor:(ARAnchor *)anchor
+
+ 4. 2D视图响应 - (void)view:(ARSKView *)view didAddNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
+    3D视图响应 - (void)renderer:(id<SCNSceneRenderer>)renderer didAddNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
+
+ 5. 2D视图响应 - (void)view:(ARSKView *)view willUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
+    3D视图响应 - (void)renderer:(id<SCNSceneRenderer>)renderer willUpdateNode:(SCNNode *)node forAnchor:(ARAnchor
+ *)anchor
+
+ 6. 2D视图响应 - (void)view:(ARSKView *)view didUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
+    3D视图响应 - (void)renderer:(id<SCNSceneRenderer>)renderer didUpdateNode:(SCNNode *)node forAnchor:(ARAnchor
+ *)anchor
+
+    5与6交替执行若干次后执行单击手势
+
+ 7. 单击手势
+ ************************************************************************************************************************/
+
+/*
+ 锁屏或退后台 - (void)sessionWasInterrupted:(ARSession *)session
+ 重新返回应用 - (void)sessionInterruptionEnded:(ARSession *)session
+ */
+
+/*
+ ARKit摄像机
+ 常用属性 :
+ 用于定义摄像机在世界坐标系中的旋转和平移的变换矩阵。
+ transform: matrix_float4x4 { get }
+
+ 我们这样简单理解为相机使用这个矩阵就可以将空间中的某个点映射到二维成像平面的一个点。
+ intrinsics: matrix_float3x3 { get }
+
+ 相机的投影矩阵。
+ projectionMatrix: matrix_float4x4 { get }
+
+ 常用方法：
+ 将世界坐标系中的3D点投影到2D视口空间中。
+ func projectPoint(_ point: vector_float3, orientation: UIInterfaceOrientation, viewportSize: CGSize) -> CGPoint
+
+ 为给定的渲染参数创建相机的投影矩阵。
+ func projectionMatrix(for orientation: UIInterfaceOrientation, viewportSize: CGSize, zNear: CGFloat, zFar: CGFloat) ->
+ matrix_float4x4
+
+ //用于定义摄像机在世界坐标系中的旋转和平移的变换矩阵
+ sceneView.session.currentFrame!.camera.transform
+
+ //现实世界中三维空间的点映射到捕捉的图像中二维空间的点
+ sceneView.session.currentFrame!.camera.intrinsics
+
+ //相机的投影矩阵
+ sceneView.session.currentFrame!.camera.projectionMatrix
+ */
 
 #define __FILENAME__(filePath) [filePath lastPathComponent]
 #define __FILEEXT__(filePath) [filePath pathExtension]
@@ -725,7 +789,7 @@ static ARHelper *arHelper;
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer willUpdateNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点已经被给定锚点的数据更新]");
+    NSLog(@"[3D节点已经被给定锚点的数据更新]");
     if (self.willUpdateNode)
     {
         self.willUpdateNode(renderer, node, anchor);
@@ -734,7 +798,7 @@ static ARHelper *arHelper;
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer didUpdateNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点将要用给定锚点的数据更新]");
+    NSLog(@"[3D节点将要用给定锚点的数据更新]");
     if (self.didUpdateNode)
     {
         self.didUpdateNode(renderer, node, anchor);
@@ -769,7 +833,7 @@ static ARHelper *arHelper;
 
 - (void)view:(ARSKView *)view willUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点已经被给定锚点的数据更新]");
+    NSLog(@"[2D节点将要用给定锚点的数据更新]");
     if (self.willUpdateNode)
     {
         self.willUpdateNode(view, node, anchor);
@@ -778,7 +842,7 @@ static ARHelper *arHelper;
 
 - (void)view:(ARSKView *)view didUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点将要用给定锚点的数据更新]");
+    NSLog(@"[2D节点已经被给定锚点的数据更新]");
     if (self.didUpdateNode)
     {
         self.didUpdateNode(view, node, anchor);
@@ -797,7 +861,7 @@ static ARHelper *arHelper;
 #pragma mark - ARSessionDelegate
 - (void)session:(ARSession *)session didUpdateFrame:(ARFrame *)frame
 {
-    NSLog(@"[新帧已经被更新]");
+    //    NSLog(@"[新帧已经被更新]");
     if (self.sessionUpdateFrame)
     {
         self.sessionUpdateFrame(session, frame);
@@ -885,7 +949,7 @@ static ARHelper *arHelper;
 
 - (void)sessionInterruptionEnded:(ARSession *)session
 {
-    NSLog(@"[会话被中断]");
+    NSLog(@"[会话中断结束]");
     if (self.interruptionEnded)
     {
         self.interruptionEnded(session, nil);
@@ -1024,6 +1088,40 @@ static ARHelper *arHelper;
         }
     }
     return resultDic;
+}
+
+- (matrix_float4x4)convertToFloat4x4FromSCNMatrix:(SCNMatrix4)matrix
+{
+    return simd_matrix(simd_make_float4(matrix.m11, matrix.m21, matrix.m31, matrix.m41),
+                       simd_make_float4(matrix.m12, matrix.m22, matrix.m32, matrix.m42),
+                       simd_make_float4(matrix.m13, matrix.m23, matrix.m33, matrix.m43),
+                       simd_make_float4(matrix.m14, matrix.m24, matrix.m34, matrix.m44));
+}
+
+- (void)addAnchorWithRotateX:(float)x rotateY:(float)y translationZ:(float)z target:(id)sceneView style:(ARStyle)style
+{
+    matrix_float4x4 translation = matrix_identity_float4x4;
+    matrix_float4x4 rotateX = [self convertToFloat4x4FromSCNMatrix:SCNMatrix4MakeRotation(x, 1, 0, 0)];
+    matrix_float4x4 rotateY = [self convertToFloat4x4FromSCNMatrix:SCNMatrix4MakeRotation(y, 0, 1, 0)];
+    matrix_float4x4 rotation = simd_mul(rotateX, rotateY);
+    translation.columns[3].z = z;
+    matrix_float4x4 transform = simd_mul(rotation, translation);
+    ARAnchor *anchor = [[ARAnchor alloc] initWithTransform:transform];
+    switch (style)
+    {
+        case ARStyle2D:
+        {
+            [((ARSKView *)sceneView).session addAnchor:anchor];
+        }
+        break;
+        case ARStyle3D:
+        {
+            [((ARSCNView *)sceneView).session addAnchor:anchor];
+        }
+        break;
+        default:
+            break;
+    }
 }
 
 @end

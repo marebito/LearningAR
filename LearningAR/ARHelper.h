@@ -174,7 +174,7 @@ typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object)
  **********************************************************************************/
 
 /**
- 新的锚点被添加到会话时被调用
+ 新的锚点被添加到会话时被调用(该方法在每次点击屏幕时都会调用)
 
  第一个参数当前正在运行的会话
  第二个参数添加的锚点数组
@@ -482,6 +482,17 @@ typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object)
  @return 返回模型初始状态数据
  */
 - (NSDictionary *)modelOriginInfo:(NSString *)plistPath;
+
+/**
+ 添加锚点
+
+ @param x x轴旋转
+ @param y y轴旋转
+ @param z z轴偏移（距离摄像头距离,单位是米)
+ @param sceneView AR视图
+ @param style AR风格
+ */
+- (void)addAnchorWithRotateX:(float)x rotateY:(float)y translationZ:(float)z target:(id)sceneView style:(ARStyle)style;
 
 @end
 

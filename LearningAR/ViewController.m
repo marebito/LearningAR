@@ -357,6 +357,11 @@
 }
 
 - (void)didReceiveMemoryWarning { [super didReceiveMemoryWarning]; }
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"jskld");
+}
 #ifndef AR_2D
 //- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 //{
