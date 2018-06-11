@@ -360,7 +360,7 @@
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSLog(@"jskld");
+    NSLog(@"%s", __FUNCTION__);
 }
 #ifndef AR_2D
 //- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
