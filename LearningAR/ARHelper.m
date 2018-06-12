@@ -263,6 +263,24 @@ static const int gesture_target_key;
 
 @end
 
+@implementation ARSCNView (Extension)
+
+- (void)resetTracking
+{
+    ARWorldTrackingConfiguration *configuration = [[ARWorldTrackingConfiguration alloc] init];
+    configuration.planeDetection = ARPlaneDetectionHorizontal;
+    [self.session runWithConfiguration:configuration options:ARSessionRunOptionResetTracking|ARSessionRunOptionRemoveExistingAnchors];
+}
+
+- (void)cleanupARSession
+{
+    [self.scene.rootNode enumerateChildNodesUsingBlock:^(SCNNode * _Nonnull child, BOOL * _Nonnull stop) {
+        [child removeFromParentNode];
+    }];
+}
+
+@end
+
 @interface ARHelper ()<ARSCNViewDelegate, ARSKViewDelegate, ARSessionDelegate>
 {
     ARConfiguration *_configuration;
@@ -760,27 +778,24 @@ static ARHelper *arHelper;
 - (void)didAddNode:(ARAnchor *_Nonnull)anchor node:(id _Nonnull)node renderer:(id _Nonnull)renderer
 {
     NSLog(@"[一个新的节点被映射到指定锚点上]");
-    if ([anchor isKindOfClass:[ARPlaneAnchor class]])
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didAddNode)
     {
         NSLog(@"捕捉到平面");
-        if (self.didAddNode)
-        {
-            self.didAddNode(renderer, node, anchor);
-        }
+        self.didAddNode(renderer, node, (ARPlaneAnchor *)anchor);
     }
 }
 
 #pragma mark - ARSCNViewDelegate
-- (nullable SCNNode *)renderer:(id<SCNSceneRenderer>)renderer nodeForAnchor:(ARAnchor *)anchor
-{
-    NSLog(@"[为指定锚点添加自定义视图]");
-    // SKLabelNode
-    if (self.nodeForAnchor)
-    {
-        return self.nodeForAnchor(renderer, anchor);
-    }
-    return nil;
-}
+//- (nullable SCNNode *)renderer:(id<SCNSceneRenderer>)renderer nodeForAnchor:(ARAnchor *)anchor
+//{
+//    NSLog(@"[为指定锚点添加自定义视图]");
+//    // SKLabelNode
+//    if (self.nodeForAnchor)
+//    {
+//        return self.nodeForAnchor(renderer, anchor);
+//    }
+//    return nil;
+//}
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer didAddNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
@@ -789,28 +804,28 @@ static ARHelper *arHelper;
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer willUpdateNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[3D节点已经被给定锚点的数据更新]");
+    //    NSLog(@"[3D节点已经被给定锚点的数据更新]");
     if (self.willUpdateNode)
     {
-        self.willUpdateNode(renderer, node, anchor);
+        self.willUpdateNode(renderer, node, (ARPlaneAnchor *)anchor);
     }
 }
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer didUpdateNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[3D节点将要用给定锚点的数据更新]");
-    if (self.didUpdateNode)
+    //    NSLog(@"[3D节点将要用给定锚点的数据更新]");
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didUpdateNode)
     {
-        self.didUpdateNode(renderer, node, anchor);
+        self.didUpdateNode(renderer, node, (ARPlaneAnchor *)anchor);
     }
 }
 
 - (void)renderer:(id<SCNSceneRenderer>)renderer didRemoveNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor
 {
     NSLog(@"[一个映射3D节点已经从给定锚点的场景图移除]");
-    if (self.didRemoveNode)
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didRemoveNode)
     {
-        self.didRemoveNode(renderer, node, anchor);
+        self.didRemoveNode(renderer, node, (ARPlaneAnchor *)anchor);
     }
 }
 
@@ -833,28 +848,28 @@ static ARHelper *arHelper;
 
 - (void)view:(ARSKView *)view willUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点将要用给定锚点的数据更新]");
-    if (self.willUpdateNode)
+    //    NSLog(@"[2D节点将要用给定锚点的数据更新]");
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.willUpdateNode)
     {
-        self.willUpdateNode(view, node, anchor);
+        self.willUpdateNode(view, node, (ARPlaneAnchor *)anchor);
     }
 }
 
 - (void)view:(ARSKView *)view didUpdateNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
 {
-    NSLog(@"[2D节点已经被给定锚点的数据更新]");
-    if (self.didUpdateNode)
+    //    NSLog(@"[2D节点已经被给定锚点的数据更新]");
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didUpdateNode)
     {
-        self.didUpdateNode(view, node, anchor);
+        self.didUpdateNode(view, node, (ARPlaneAnchor *)anchor);
     }
 }
 
 - (void)view:(ARSKView *)view didRemoveNode:(SKNode *)node forAnchor:(ARAnchor *)anchor
 {
     NSLog(@"[一个映射2D节点已经从给定锚点的场景图移除]");
-    if (self.didRemoveNode)
+    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didRemoveNode)
     {
-        self.didRemoveNode(view, node, anchor);
+        self.didRemoveNode(view, node, (ARPlaneAnchor *)anchor);
     }
 }
 
@@ -871,6 +886,18 @@ static ARHelper *arHelper;
 - (void)session:(ARSession *)session didAddAnchors:(NSArray<ARAnchor *> *)anchors
 {
     NSLog(@"[新的锚点被添加到会话]");
+    if (!session.currentFrame) return;
+
+    for (ARAnchor *anchor in anchors)
+    {
+        if ([anchor isKindOfClass:[ARPlaneAnchor class]])
+        {
+            NSLog(@"[锚点中心] : (%f, %f, %f)\t[锚点大小] : (%f, %f, %f)", ((ARPlaneAnchor *)anchor).center[0],
+                  ((ARPlaneAnchor *)anchor).center[1], ((ARPlaneAnchor *)anchor).center[2],
+                  ((ARPlaneAnchor *)anchor).extent[0], ((ARPlaneAnchor *)anchor).extent[1],
+                  ((ARPlaneAnchor *)anchor).extent[2]);
+        }
+    }
     if (self.sessionDidAddAnchors)
     {
         self.sessionDidAddAnchors(session, anchors);
@@ -888,6 +915,7 @@ static ARHelper *arHelper;
 
 - (void)session:(ARSession *)session didRemoveAnchors:(NSArray<ARAnchor *> *)anchors
 {
+    if (!session.currentFrame) return;
     NSLog(@"[锚点被从会话中移除]");
     if (self.sessionDidRemoveAnchors)
     {
@@ -898,6 +926,7 @@ static ARHelper *arHelper;
 #pragma mark - ARSessionObserver
 - (void)session:(ARSession *)session didFailWithError:(NSError *)error
 {
+    _sessionStatus = ARSessionStatusReadyFailed;
     NSLog(@"[建立会话失败]");
     if (error)
     {
@@ -940,6 +969,7 @@ static ARHelper *arHelper;
 
 - (void)sessionWasInterrupted:(ARSession *)session
 {
+    _sessionStatus = ARSessionStatusTemporarilyUnavailable;
     NSLog(@"[会话被中断]");
     if (self.wasInterrupted)
     {
@@ -949,6 +979,7 @@ static ARHelper *arHelper;
 
 - (void)sessionInterruptionEnded:(ARSession *)session
 {
+    _sessionStatus = ARSessionStatusReady;
     NSLog(@"[会话中断结束]");
     if (self.interruptionEnded)
     {
@@ -1074,6 +1105,16 @@ static ARHelper *arHelper;
     if (completion) completion(arView, nil);
 }
 
+- (ARHitTestResult *)hitTest:(id)sceneView touchPoint:(CGPoint)touchPoint
+{
+    NSArray<ARHitTestResult *> *results = [sceneView hitTest:touchPoint types:ARHitTestResultTypeExistingPlaneUsingExtent];
+    if (results.count > 0)
+    {
+        return [results firstObject];
+    }
+    return nil;
+}
+
 - (NSDictionary *)modelOriginInfo:(NSString *)plistPath
 {
     NSArray *array = [NSArray arrayWithContentsOfFile:plistPath];
@@ -1122,6 +1163,38 @@ static ARHelper *arHelper;
         default:
             break;
     }
+}
+
+- (SCNNode *)createCameraNodeWithX:(float)x y:(float)y z:(float)z
+{
+    SCNNode *cameraNode = [[SCNNode alloc] init];
+    SCNCamera *camera = [[SCNCamera alloc] init];
+    cameraNode.camera = camera;
+    cameraNode.position = SCNVector3Make(x, y, z);
+    return cameraNode;
+}
+
+- (NSString *)descriptionForSessionState:(ARSessionStatus)sessionStatus
+{
+    NSString *description = nil;
+    switch (sessionStatus)
+    {
+        case ARSessionStatusInitialized:
+            description = @"👀 Look for a plane to place your object";
+            break;
+        case ARSessionStatusReady:
+            description = @"☕️ Click any plane to place your object!";
+            break;
+        case ARSessionStatusTemporarilyUnavailable:
+            description = @"😱 Plane temporarily unavailable. Please wait";
+            break;
+        case ARSessionStatusReadyFailed:
+            description = @"⛔️ Caffeine crisis! Please restart App.";
+            break;
+        default:
+            break;
+    }
+    return description;
 }
 
 @end

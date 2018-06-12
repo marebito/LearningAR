@@ -54,6 +54,21 @@ typedef NS_ENUM(NSUInteger, ARCoordinateSystem) {
     ARCoordinateSystemCamera,
 };
 
+/**
+ AR会话状态
+
+ - ARSessionStatusInitialized: 会话初始化
+ - ARSessionStatusReady: 会话准备
+ - ARSessionStatusTemporarilyUnavailable: 会话暂时不可用
+ - ARSessionStatusReadyFailed: 会话失败
+ */
+typedef NS_ENUM(NSUInteger, ARSessionStatus) {
+    ARSessionStatusInitialized,
+    ARSessionStatusReady,
+    ARSessionStatusTemporarilyUnavailable,
+    ARSessionStatusReadyFailed,
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 /**
@@ -87,7 +102,7 @@ typedef id _Nullable (^NodeForAnchorCallback)(id renderer, ARAnchor *anchor);
 /**
  节点改变回调
  */
-typedef void (^NodeChangeCallback)(id renderer, id node, ARAnchor *anchor);
+typedef void (^NodeChangeCallback)(id renderer, id node, ARPlaneAnchor *anchor);
 
 /**
  会话帧更新回调
@@ -104,7 +119,23 @@ typedef void (^SessionAnchorChangeCallback)(ARSession *session, NSArray<ARAnchor
  */
 typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object);
 
+@interface ARSCNView (Extension)
+
+/**
+ 重置跟踪
+ */
+- (void)resetTracking;
+
+/**
+ 清除当前AR会话
+ */
+- (void)cleanupARSession;
+
+@end
+
 @interface ARHelper : NSObject
+
+@property(nonatomic, assign) ARSessionStatus sessionStatus;
 
 /**
  锚点对应节点回调
@@ -476,6 +507,15 @@ typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object)
     completionHandler:(void (^)(id arView, id node))completion;
 
 /**
+ 测试点击到的第一个对象
+
+ @param sceneView 场景视图
+ @param touchPoint 点击的点
+ @return 返回AR点击结果
+ */
+- (ARHitTestResult *)hitTest:(id)sceneView touchPoint:(CGPoint)touchPoint;
+
+/**
  模型初始状态
 
  @param plistPath model_info.plist
@@ -493,6 +533,24 @@ typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object)
  @param style AR风格
  */
 - (void)addAnchorWithRotateX:(float)x rotateY:(float)y translationZ:(float)z target:(id)sceneView style:(ARStyle)style;
+
+/**
+ 创建自定义相机节点
+
+ @param x x
+ @param y y
+ @param z z
+ @return 返回相机节点
+ */
+- (SCNNode *)createCameraNodeWithX:(float)x y:(float)y z:(float)z;
+
+/**
+ AR会话描述
+
+ @param sessionStatus 会话状态
+ @return 返回AR会话状态描述
+ */
+- (NSString *)descriptionForSessionState:(ARSessionStatus)sessionStatus;
 
 @end
 

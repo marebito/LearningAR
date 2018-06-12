@@ -18,6 +18,7 @@
 		5436AA29204293BF00E8CBA3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5436AA27204293BF00E8CBA3 /* LaunchScreen.storyboard */; };
 		5436AA2C204293BF00E8CBA3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5436AA2B204293BF00E8CBA3 /* main.m */; };
 		5436AA392042987300E8CBA3 /* ARHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 5436AA382042987300E8CBA3 /* ARHelper.m */; };
+		5456FFDE20CFA2D3007815C6 /* ARVirtualPlane.m in Sources */ = {isa = PBXBuildFile; fileRef = 5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */; };
 		54C6E3B32043799C0070C917 /* ARBaseController.m in Sources */ = {isa = PBXBuildFile; fileRef = 54C6E3B22043799C0070C917 /* ARBaseController.m */; };
 		54C6E3DC204385520070C917 /* Scene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 54C6E3DB204385510070C917 /* Scene.sks */; };
 		54F11800204455D400E5B1A0 /* Scene.m in Sources */ = {isa = PBXBuildFile; fileRef = 54F117FE204455D400E5B1A0 /* Scene.m */; };
@@ -41,6 +42,8 @@
 		5436AA382042987300E8CBA3 /* ARHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARHelper.m; sourceTree = "<group>"; };
 		5436AA3E20429BDB00E8CBA3 /* SceneKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SceneKit.framework; path = System/Library/Frameworks/SceneKit.framework; sourceTree = SDKROOT; };
 		5436AA3F20429BE000E8CBA3 /* SpriteKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SpriteKit.framework; path = System/Library/Frameworks/SpriteKit.framework; sourceTree = SDKROOT; };
+		5456FFDC20CFA2D3007815C6 /* ARVirtualPlane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARVirtualPlane.h; sourceTree = "<group>"; };
+		5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARVirtualPlane.m; sourceTree = "<group>"; };
 		54C6E3B12043799C0070C917 /* ARBaseController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARBaseController.h; sourceTree = "<group>"; };
 		54C6E3B22043799C0070C917 /* ARBaseController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARBaseController.m; sourceTree = "<group>"; };
 		54C6E3DB204385510070C917 /* Scene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Scene.sks; sourceTree = "<group>"; };
@@ -90,6 +93,8 @@
 				5436AA382042987300E8CBA3 /* ARHelper.m */,
 				54C6E3B12043799C0070C917 /* ARBaseController.h */,
 				54C6E3B22043799C0070C917 /* ARBaseController.m */,
+				5456FFDC20CFA2D3007815C6 /* ARVirtualPlane.h */,
+				5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */,
 				5436AA1D204293BF00E8CBA3 /* art.scnassets */,
 				5436AA1F204293BF00E8CBA3 /* ViewController.h */,
 				5436AA20204293BF00E8CBA3 /* ViewController.m */,
@@ -146,7 +151,7 @@
 				TargetAttributes = {
 					5436AA16204293BF00E8CBA3 = {
 						CreatedOnToolsVersion = 9.1;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -193,6 +198,7 @@
 				5436AA392042987300E8CBA3 /* ARHelper.m in Sources */,
 				5436AA21204293BF00E8CBA3 /* ViewController.m in Sources */,
 				5436AA2C204293BF00E8CBA3 /* main.m in Sources */,
+				5456FFDE20CFA2D3007815C6 /* ARVirtualPlane.m in Sources */,
 				54C6E3B32043799C0070C917 /* ARBaseController.m in Sources */,
 				5436AA1C204293BF00E8CBA3 /* AppDelegate.m in Sources */,
 			);
@@ -329,18 +335,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = FJV2B9GPDW;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LQW337MH2W;
 				INFOPLIST_FILE = LearningAR/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yoyoshijie.philm;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.godlikestudio.learningar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "3aeacfd8-cfac-4028-a7e1-75912749ac2d";
-				PROVISIONING_PROFILE_SPECIFIER = com.yoyoshijie.philm.beta;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -350,18 +354,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = FJV2B9GPDW;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LQW337MH2W;
 				INFOPLIST_FILE = LearningAR/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yoyoshijie.philm;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.godlikestudio.learningar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "3aeacfd8-cfac-4028-a7e1-75912749ac2d";
-				PROVISIONING_PROFILE_SPECIFIER = com.yoyoshijie.philm.beta;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

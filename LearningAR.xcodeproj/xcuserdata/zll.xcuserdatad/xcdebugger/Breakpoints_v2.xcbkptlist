@@ -19,13 +19,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "LearningAR/ARHelper.m"
-            timestampString = "550142569.9147789"
+            filePath = "LearningAR/ViewController.m"
+            timestampString = "550495139.214448"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "933"
-            endingLineNumber = "933"
-            landmarkName = "-isNodePartOfVirtualObject:nodeName:style:"
+            startingLineNumber = "486"
+            endingLineNumber = "486"
+            landmarkName = "-touchesBegan:withEvent:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -35,13 +35,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "LearningAR/ARHelper.m"
-            timestampString = "550142569.914897"
+            filePath = "LearningAR/ViewController.m"
+            timestampString = "550495139.2148269"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "975"
-            endingLineNumber = "975"
-            landmarkName = "-hitTestARView:point:options:nodeName:style:completionHandler:"
+            startingLineNumber = "484"
+            endingLineNumber = "484"
+            landmarkName = "-touchesBegan:withEvent:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
