@@ -10,6 +10,7 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import <simd/types.h>
+#import "SCNGeometry+Description.h"
 
 /************************************************************************************************************************
  点击屏幕响应顺序:
@@ -85,13 +86,21 @@
  - GestureTypeSingleTap: 单击手势
  - GestureTypeDoubleTap: 双击手势
  - GestureTypePan: 拖拽手势
- - GestureTypePinch: 缩放收拾
+ - GestureTypePinch: 缩放手势
+ - GestureTypeSwipeUp: 上滑手势
+ - GestureTypeSwipeLeft: 左滑手势
+ - GestureTypeSwipeDown: 下滑手势
+ - GestureTypeSwipeRight: 右滑手势
  */
 typedef NS_ENUM(NSUInteger, GestureType) {
     GestureTypeSingleTap,
     GestureTypeDoubleTap,
     GestureTypePan,
-    GestureTypePinch
+    GestureTypePinch,
+    GestureTypeSwipeUp,
+    GestureTypeSwipeLeft,
+    GestureTypeSwipeDown,
+    GestureTypeSwipeRight
 };
 
 /**
@@ -147,6 +156,55 @@ static const int gesture_target_key;
 @end
 
 @implementation UIView (GestureHandle)
+
+- (UIGestureRecognizer *)findGesture:(GestureType)type direction:(UISwipeGestureRecognizerDirection)direction
+{
+    UIGestureRecognizer *gesture = nil;
+    for (UIGestureRecognizer *tmpGesture in self.gestureRecognizers)
+    {
+        if ([tmpGesture isKindOfClass:[UISwipeGestureRecognizer class]])
+        {
+            switch (type)
+            {
+                case GestureTypeSwipeUp:
+                {
+                    if (direction == UISwipeGestureRecognizerDirectionUp)
+                    {
+                        gesture = tmpGesture;
+                    }
+                }
+                break;
+                case GestureTypeSwipeLeft:
+                {
+                    if (direction == UISwipeGestureRecognizerDirectionLeft)
+                    {
+                        gesture = tmpGesture;
+                    }
+                }
+                break;
+                case GestureTypeSwipeDown:
+                {
+                    if (direction == UISwipeGestureRecognizerDirectionDown)
+                    {
+                        gesture = tmpGesture;
+                    }
+                }
+                break;
+                case GestureTypeSwipeRight:
+                {
+                    if (direction == UISwipeGestureRecognizerDirectionRight)
+                    {
+                        gesture = tmpGesture;
+                    }
+                }
+                break;
+                default:
+                    break;
+            }
+        }
+    }
+    return gesture;
+}
 
 - (UIGestureRecognizer *)findGesture:(GestureType)type
 {
@@ -204,7 +262,7 @@ static const int gesture_target_key;
     return gesture;
 }
 
-- (void)singleTapWithHandler:(GestureBlock)handler;
+- (UITapGestureRecognizer *)singleTapWithHandler:(GestureBlock)handler;
 {
     UITapGestureRecognizer *singleTapGesture = (UITapGestureRecognizer *)[self findGesture:GestureTypeSingleTap];
     if (singleTapGesture)
@@ -216,9 +274,10 @@ static const int gesture_target_key;
         singleTapGesture = [[UITapGestureRecognizer alloc] initWithActionBlock:handler];
         [self addGestureRecognizer:singleTapGesture];
     }
+    return singleTapGesture;
 }
 
-- (void)doubleTapWithhandler:(GestureBlock)handler;
+- (UIGestureRecognizer *)doubleTapWithhandler:(GestureBlock)handler;
 {
     UITapGestureRecognizer *doubleTapGesture = (UITapGestureRecognizer *)[self findGesture:GestureTypeDoubleTap];
     if (doubleTapGesture)
@@ -231,6 +290,7 @@ static const int gesture_target_key;
         doubleTapGesture.numberOfTapsRequired = 2;
         [self addGestureRecognizer:doubleTapGesture];
     }
+    return doubleTapGesture;
 }
 
 - (void)panWithHandler:(GestureBlock)handler;
@@ -261,6 +321,38 @@ static const int gesture_target_key;
     }
 }
 
+- (void)swipeWithHandler:(GestureBlock)handler withDirection:(UISwipeGestureRecognizerDirection)direction
+{
+    UISwipeGestureRecognizer *swipeGesture = nil;
+    switch (direction)
+    {
+        case UISwipeGestureRecognizerDirectionUp:
+            swipeGesture = (UISwipeGestureRecognizer *)[self findGesture:GestureTypeSwipeUp direction:direction];
+            break;
+        case UISwipeGestureRecognizerDirectionDown:
+            swipeGesture = (UISwipeGestureRecognizer *)[self findGesture:GestureTypeSwipeDown direction:direction];
+            break;
+        case UISwipeGestureRecognizerDirectionLeft:
+            swipeGesture = (UISwipeGestureRecognizer *)[self findGesture:GestureTypeSwipeLeft direction:direction];
+            break;
+        case UISwipeGestureRecognizerDirectionRight:
+            swipeGesture = (UISwipeGestureRecognizer *)[self findGesture:GestureTypeSwipeRight direction:direction];
+            break;
+        default:
+            break;
+    }
+    if (swipeGesture)
+    {
+        handler = [swipeGesture gestureBlock];
+    }
+    else
+    {
+        swipeGesture = [[UISwipeGestureRecognizer alloc] initWithActionBlock:handler];
+        swipeGesture.direction = direction;
+        [self addGestureRecognizer:swipeGesture];
+    }
+}
+
 @end
 
 @implementation ARSCNView (Extension)
@@ -269,19 +361,20 @@ static const int gesture_target_key;
 {
     ARWorldTrackingConfiguration *configuration = [[ARWorldTrackingConfiguration alloc] init];
     configuration.planeDetection = ARPlaneDetectionHorizontal;
-    [self.session runWithConfiguration:configuration options:ARSessionRunOptionResetTracking|ARSessionRunOptionRemoveExistingAnchors];
+    [self.session runWithConfiguration:configuration
+                               options:ARSessionRunOptionResetTracking | ARSessionRunOptionRemoveExistingAnchors];
 }
 
 - (void)cleanupARSession
 {
-    [self.scene.rootNode enumerateChildNodesUsingBlock:^(SCNNode * _Nonnull child, BOOL * _Nonnull stop) {
+    [self.scene.rootNode enumerateChildNodesUsingBlock:^(SCNNode *_Nonnull child, BOOL *_Nonnull stop) {
         [child removeFromParentNode];
     }];
 }
 
 @end
 
-@interface ARHelper ()<ARSCNViewDelegate, ARSKViewDelegate, ARSessionDelegate>
+@interface ARHelper ()<ARSCNViewDelegate, ARSKViewDelegate, ARSessionDelegate, UIGestureRecognizerDelegate>
 {
     ARConfiguration *_configuration;
     ARSession *_arSession;
@@ -348,13 +441,28 @@ static ARHelper *arHelper;
              pinch:(GestureBlock)pinch
             target:(UIView *)target
 {
+    [self bindAction:singleTap doubleTap:doubleTap pan:pan pinch:pinch target:target];
+}
+
+- (void)bindAction:(GestureBlock)singleTap
+         doubleTap:(GestureBlock)doubleTap
+               pan:(GestureBlock)pan
+             pinch:(GestureBlock)pinch
+         swipeLeft:(GestureBlock)swipeLeft
+        swipeRight:(GestureBlock)swipeRight
+           swipeUp:(GestureBlock)swipeUp
+         swipeDown:(GestureBlock)swipeDown
+            target:(UIView *)target
+{
+    UITapGestureRecognizer *singleTapGesture = nil;
     if (singleTap)
     {
-        [target singleTapWithHandler:singleTap];
+        singleTapGesture = [target singleTapWithHandler:singleTap];
     }
     if (doubleTap)
     {
-        [target doubleTapWithhandler:doubleTap];
+        UITapGestureRecognizer *doubleTapGesture = [target doubleTapWithhandler:doubleTap];
+        [singleTapGesture requireGestureRecognizerToFail:doubleTapGesture];
     }
     if (pan)
     {
@@ -363,6 +471,22 @@ static ARHelper *arHelper;
     if (pinch)
     {
         [target pinchWithHandler:pinch];
+    }
+    if (swipeLeft)
+    {
+        [target swipeWithHandler:swipeLeft withDirection:UISwipeGestureRecognizerDirectionLeft];
+    }
+    if (swipeRight)
+    {
+        [target swipeWithHandler:swipeRight withDirection:UISwipeGestureRecognizerDirectionUp];
+    }
+    if (swipeUp)
+    {
+        [target swipeWithHandler:swipeUp withDirection:UISwipeGestureRecognizerDirectionUp];
+    }
+    if (swipeDown)
+    {
+        [target swipeWithHandler:swipeDown withDirection:UISwipeGestureRecognizerDirectionDown];
     }
 }
 
@@ -778,10 +902,10 @@ static ARHelper *arHelper;
 - (void)didAddNode:(ARAnchor *_Nonnull)anchor node:(id _Nonnull)node renderer:(id _Nonnull)renderer
 {
     NSLog(@"[一个新的节点被映射到指定锚点上]");
-    if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didAddNode)
+    if (self.didAddNode)
     {
         NSLog(@"捕捉到平面");
-        self.didAddNode(renderer, node, (ARPlaneAnchor *)anchor);
+        self.didAddNode(renderer, node, anchor);
     }
 }
 
@@ -807,7 +931,7 @@ static ARHelper *arHelper;
     //    NSLog(@"[3D节点已经被给定锚点的数据更新]");
     if (self.willUpdateNode)
     {
-        self.willUpdateNode(renderer, node, (ARPlaneAnchor *)anchor);
+        self.willUpdateNode(renderer, node, anchor);
     }
 }
 
@@ -816,7 +940,7 @@ static ARHelper *arHelper;
     //    NSLog(@"[3D节点将要用给定锚点的数据更新]");
     if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didUpdateNode)
     {
-        self.didUpdateNode(renderer, node, (ARPlaneAnchor *)anchor);
+        self.didUpdateNode(renderer, node, anchor);
     }
 }
 
@@ -825,7 +949,7 @@ static ARHelper *arHelper;
     NSLog(@"[一个映射3D节点已经从给定锚点的场景图移除]");
     if ([anchor isKindOfClass:[ARPlaneAnchor class]] && self.didRemoveNode)
     {
-        self.didRemoveNode(renderer, node, (ARPlaneAnchor *)anchor);
+        self.didRemoveNode(renderer, node, anchor);
     }
 }
 
@@ -1107,7 +1231,8 @@ static ARHelper *arHelper;
 
 - (ARHitTestResult *)hitTest:(id)sceneView touchPoint:(CGPoint)touchPoint
 {
-    NSArray<ARHitTestResult *> *results = [sceneView hitTest:touchPoint types:ARHitTestResultTypeExistingPlaneUsingExtent];
+    NSArray<ARHitTestResult *> *results =
+        [sceneView hitTest:touchPoint types:ARHitTestResultTypeExistingPlaneUsingExtent];
     if (results.count > 0)
     {
         return [results firstObject];

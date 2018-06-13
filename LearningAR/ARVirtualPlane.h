@@ -12,7 +12,7 @@
 
 @interface ARVirtualPlane : SCNNode
 
-@property(nonatomic, copy) NSString *identifier;
+@property(nonatomic, strong) NSUUID *identifier; // 虚拟平面唯一标识
 
 - (instancetype)initWithAnchor:(ARPlaneAnchor *)anchor;
 

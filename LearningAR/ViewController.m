@@ -48,6 +48,7 @@
 @property(nonatomic, strong) NSMutableDictionary *planes;    // 所有虚拟平面
 @property(nonatomic, strong) SKCameraNode *sceneCamera;      // 场景相机
 @property(nonatomic, assign) ARStyle style;                  // AR风格
+@property(nonatomic, strong) SCNNode *shipNode;           // 飞机
 @property(nonatomic, strong) UILabel *sessionInfoLabel;      // 会话信息标签
 #ifndef AR_2D
 @property(nonatomic, strong) ARSCNView *sceneView;
@@ -76,8 +77,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    _planes = [[NSMutableDictionary alloc] init];
+
     _selectedPlane = [[ARVirtualPlane alloc] init];
-    _selectedPlane.identifier = [[NSUUID UUID] UUIDString];
 
     _helper = [ARHelper helper];
 
@@ -292,6 +295,38 @@
     //                  ((UIPinchGestureRecognizer *)gesture).velocity);
     //        }
     //        target:self.view];
+
+    @WeakObj(self);
+    [_helper bindAction:^(UIGestureRecognizer * _Nonnull gesture) {
+        @StrongObj(self);
+        CGPoint touchPoint = [gesture locationInView:self.sceneView];
+        NSArray<SCNHitTestResult *> *results = [self.sceneView hitTest:touchPoint options:nil];
+        if (results.count > 0)
+        {
+            if(self.selectedPlane)
+            {
+                NSArray<ARHitTestResult *> *hitResults = [self.sceneView hitTest:touchPoint types:ARHitTestResultTypeExistingPlane];
+                if (hitResults.count > 0) {
+                    for (ARHitTestResult *result in hitResults) {
+                        SCNNode *node = [self.sceneView nodeForAnchor:result.anchor];
+                        NSLog(@"node name:%@", node.name);
+                    }
+                }
+            }
+        }
+
+        NSLog(@"单击");
+    } doubleTap:^(UIGestureRecognizer * _Nonnull gesture) {
+        NSLog(@"双击");
+    } pan:^(UIGestureRecognizer * _Nonnull gesture) {
+        NSLog(@"拖拽");
+    } pinch:^(UIGestureRecognizer * _Nonnull gesture) {
+        NSLog(@"捏合");
+    } swipeLeft:^(UIGestureRecognizer * _Nonnull gesture) {
+        NSLog(@"左转");
+    } swipeRight:^(UIGestureRecognizer * _Nonnull gesture) {
+        NSLog(@"右转");
+    } swipeUp:nil swipeDown:nil target:_sceneView];
     _sceneView.allowsCameraControl = NO;
     _sceneView.automaticallyUpdatesLighting = YES;
     //    | SCNDebugOptions.showConstraints | SCNDebugOptions.showLightExtents
@@ -327,6 +362,10 @@
     scene = [_helper sceneWithFile:@"Scene" style:_style];
 #endif
 
+    _sceneView.scene = scene;
+
+//    self.planeNode = scene.rootNode.childNode(withName: "Mug", recursively: true)!
+    self.shipNode = [((SCNScene *)scene).rootNode childNodeWithName:@"shipMesh" recursively:true];
     [self.view addSubview:_sceneView];
 
     _sessionInfoLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 30, 300, 21)];
@@ -385,42 +424,38 @@
         return arrM[arc4random() % 2];
     };
 #endif
-    _helper.didAddNode = ^(id _Nonnull renderer, id _Nonnull node, ARPlaneAnchor *_Nonnull anchor) {
+    _helper.didAddNode = ^(id _Nonnull renderer, id _Nonnull node, ARAnchor *_Nonnull anchor) {
         @StrongObj(self);
-        //        ARVirtualPlane *vPlane = [[ARVirtualPlane alloc] initWithAnchor:anchor];
-        //        self.planes[((ARPlaneAnchor *)anchor).identifier] = vPlane;
-        //        [node addChildNode:vPlane];
-        SCNPlane *plane = [SCNPlane planeWithWidth:anchor.extent.x height:anchor.extent.z];
-        SCNNode *planeNode = [SCNNode nodeWithGeometry:plane];
-        planeNode.simdPosition = simd_make_float3(anchor.center.x, 0, anchor.center.z);
-        [planeNode setEulerAngles:SCNVector3Make(-M_PI / 2.0, planeNode.eulerAngles.y, planeNode.eulerAngles.z)];
-        planeNode.opacity = 0.25;
-        [node addChildNode:planeNode];
+        if ([anchor isKindOfClass:[ARPlaneAnchor class]])
+        {
+            ARVirtualPlane *vPlane = [[ARVirtualPlane alloc] initWithAnchor:(ARPlaneAnchor *)anchor];
+            self.planes[((ARPlaneAnchor *)anchor).identifier] = vPlane;
+            [node addChildNode:vPlane];
+            //            SCNPlane *plane = [SCNPlane planeWithWidth:((ARPlaneAnchor *)anchor).extent.x
+            //            height:((ARPlaneAnchor *)anchor).extent.z];
+            //            SCNNode *planeNode = [SCNNode nodeWithGeometry:plane];
+            //            planeNode.simdPosition = simd_make_float3(((ARPlaneAnchor *)anchor).center.x, 0,
+            //            ((ARPlaneAnchor *)anchor).center.z);
+            //            [planeNode setEulerAngles:SCNVector3Make(-M_PI / 2.0, planeNode.eulerAngles.y,
+            //            planeNode.eulerAngles.z)];
+            //            planeNode.opacity = 0.25;
+            //            [node addChildNode:planeNode];
+        }
     };
-    _helper.willUpdateNode = ^(id _Nonnull renderer, id _Nonnull node, ARPlaneAnchor *_Nonnull anchor) {
+    _helper.willUpdateNode = ^(id _Nonnull renderer, id _Nonnull node, ARAnchor *_Nonnull anchor) {
 
     };
-    _helper.didUpdateNode = ^(id _Nonnull renderer, id _Nonnull node, ARPlaneAnchor *_Nonnull anchor) {
+    _helper.didUpdateNode = ^(id _Nonnull renderer, id _Nonnull node, ARAnchor *_Nonnull anchor) {
         @StrongObj(self);
-        //        ARVirtualPlane *vPlane = self.planes[((ARPlaneAnchor *)anchor).identifier];
-        //        [vPlane updateWithNewAnchor:(ARPlaneAnchor *)anchor];
-        ARVirtualPlane *planeNode = (ARVirtualPlane *)((SCNNode *)node).childNodes.firstObject;
-        SCNPlane *plane = nil;
-        if ([plane isKindOfClass:[SCNPlane class]])
-        {
-            plane = (SCNPlane *)planeNode.geometry;
-        }
-        else
-        {
-            return;
-        }
-        planeNode.simdPosition = simd_make_float3(anchor.center.x, 0, anchor.center.z);
-
-        plane.width = anchor.extent.x;
-        plane.height = anchor.extent.z;
+        ARVirtualPlane *vPlane = self.planes[((ARPlaneAnchor *)anchor).identifier];
+        [vPlane updateWithNewAnchor:(ARPlaneAnchor *)anchor];
     };
-    _helper.didRemoveNode = ^(id _Nonnull renderer, id _Nonnull node, ARPlaneAnchor *_Nonnull anchor) {
+    _helper.didRemoveNode = ^(id _Nonnull renderer, id _Nonnull node, ARAnchor *_Nonnull anchor) {
         @StrongObj(self);
+        if ([anchor isKindOfClass:[ARPlaneAnchor class]])
+        {
+            [self.planes removeObjectForKey:((ARPlaneAnchor *)anchor).identifier];
+        }
     };
 }
 
@@ -445,8 +480,7 @@
 
 - (void)processSessionState
 {
-    @WeakObj(self)
-    _helper.didFailWithError = ^(ARSession *_Nonnull session, id _Nullable object) {
+    @WeakObj(self) _helper.didFailWithError = ^(ARSession *_Nonnull session, id _Nullable object) {
         @StrongObj(self);
 #ifndef AR_2D
         [self.sceneView resetTracking];
@@ -469,28 +503,29 @@
 }
 
 - (void)didReceiveMemoryWarning { [super didReceiveMemoryWarning]; }
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
-    NSLog(@"%s", __FUNCTION__);
-    UITouch *touch = [[touches allObjects] firstObject];
-//    if (_helper.sessionStatus != ARSessionStatusReady)
+//- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+//{
+//    if (self.selectedPlane && self.selectedObject) return;
+//    NSLog(@"%s", __FUNCTION__);
+//    UITouch *touch = [[touches allObjects] firstObject];
+//    //    if (_helper.sessionStatus != ARSessionStatusReady)
+//    //    {
+//    //        NSLog(@"平面没有产生好，不能放置物体");
+//    //        return;
+//    //    }
+//    CGPoint touchPoint = [touch locationInView:_sceneView];
+//    NSLog(@"[touch]:%@\t[point]:%@", touch, [NSValue valueWithCGPoint:touchPoint]);
+//    ARVirtualPlane *plane = [self virtualPlaneProperlySet:touchPoint];
+//    if (plane)
 //    {
-//        NSLog(@"平面没有产生好，不能放置物体");
-//        return;
+//        NSLog(@"[触摸到的虚拟平面]:%@", plane);
+//        [self addObjectToPlane:plane atPoint:touchPoint];
 //    }
-    CGPoint touchPoint = [touch locationInView:_sceneView];
-    NSLog(@"[touch]:%@\t[point]:%@", touch, [NSValue valueWithCGPoint:touchPoint]);
-    ARVirtualPlane *plane = [self virtualPlaneProperlySet:touchPoint];
-    if (plane)
-    {
-        NSLog(@"[触摸到的虚拟平面]:%@", plane);
-        [self addObjectToPlane:plane atPoint:touchPoint];
-    }
-    else
-    {
-        NSLog(@"没有平面被触碰到");
-    }
-}
+//    else
+//    {
+//        NSLog(@"没有平面被触碰到");
+//    }
+//}
 
 - (ARVirtualPlane *)virtualPlaneProperlySet:(CGPoint)touchPoint
 {
@@ -509,18 +544,30 @@
     ARHitTestResult *result = [_helper hitTest:_sceneView touchPoint:touchPoint];
     if (result)
     {
-        SCNNode *node = [SCNNode node];
-        SCNNode *cloneNode = [node clone];
-        if (cloneNode)
-        {
-            cloneNode.position = SCNVector3Make(result.worldTransform.columns[3].x, result.worldTransform.columns[3].y,
-                                                result.worldTransform.columns[3].z);
-            //            [_sceneView.scene.rootNode addChildNode:cloneNode];
-        }
+        SCNBox *box = [SCNBox boxWithWidth:0.1 height:0.1 length:0.1 chamferRadius:0];
+        SCNNode *node = [SCNNode nodeWithGeometry:box];
+        SCNMaterial *material = [[SCNMaterial alloc] init];
+        material.diffuse.contents = [UIColor redColor];
+        node.geometry.materials = @[material];
+        float nodeX = result.worldTransform.columns[3].x;
+        float nodeY = result.worldTransform.columns[3].y;
+        float nodeZ = result.worldTransform.columns[3].z;
+        NSLog(@"[放置节点位置]: \n[x]: %f\n[y]: %f\n[z]: %f", nodeX, nodeY, nodeZ);
+        node.position = SCNVector3Make(nodeX, nodeY, nodeZ);
+        self.selectedObject = node;
+        [_sceneView.scene.rootNode addChildNode:node];
+//        SCNNode *cloneNode = [self.shipNode clone];
+//        if (cloneNode)
+//        {
+//            cloneNode.position = SCNVector3Make(result.worldTransform.columns[3].x, result.worldTransform.columns[3].y,
+//                                                result.worldTransform.columns[3].z);
+//            cloneNode.scale = SCNVector3Make(2.0, 2.0, 2.0);
+//            [_sceneView.scene.rootNode addChildNode:cloneNode];
+//        }
     }
 }
 
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event { NSLog(@"%s", __FUNCTION__); }
+//- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event { NSLog(@"%s", __FUNCTION__); }
 #ifndef AR_2D
 //- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 //{
@@ -566,7 +613,7 @@
                 message = @"Move the device around to detect horizontal surfaces.";
             }
         }
-            break;
+        break;
         case ARTrackingStateNotAvailable:
             message = @"Tracking unavailable.";
             break;
@@ -593,9 +640,11 @@
             break;
     }
     dispatch_async(dispatch_get_main_queue(), ^{
+        _sessionInfoLabel.hidden = !message;
         _sessionInfoLabel.text = message;
         [_sessionInfoLabel sizeToFit];
-        _sessionInfoLabel.frame = CGRectMake(10, 30, _sessionInfoLabel.frame.size.width + 10, _sessionInfoLabel.frame.size.height + 10);
+        _sessionInfoLabel.frame =
+            CGRectMake(10, 30, _sessionInfoLabel.frame.size.width + 10, _sessionInfoLabel.frame.size.height + 10);
     });
 }
 

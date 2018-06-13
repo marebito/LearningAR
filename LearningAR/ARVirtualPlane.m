@@ -20,6 +20,7 @@
     if (self = [super init])
     {
         self.anchor = anchor;
+        self.identifier = self.anchor.identifier;
         self.planeGeometry = [SCNPlane planeWithWidth:anchor.extent.x height:anchor.extent.z];
         SCNMaterial *material = [self initializePlaneMaterial];
         self.planeGeometry.materials = @[ material ];
@@ -38,7 +39,8 @@
 - (SCNMaterial *)initializePlaneMaterial
 {
     SCNMaterial *material = [[SCNMaterial alloc] init];
-    material.diffuse.contents = [UIColor colorWithWhite:1.0 alpha:0.10];
+//    material.diffuse.contents = [UIColor colorWithWhite:1.0 alpha:0.10];
+    material.diffuse.contents = [UIColor yellowColor];
     return material;
 }
 

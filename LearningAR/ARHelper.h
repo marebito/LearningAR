@@ -86,11 +86,15 @@ typedef void (^GestureBlock)(UIGestureRecognizer *gesture);
 
 @interface UIView (GestureHandle)
 
-- (void)singleTapWithHandler:(GestureBlock)handler;
+- (UITapGestureRecognizer *)singleTapWithHandler:(GestureBlock)handler;
 
-- (void)doubleTapWithhandler:(GestureBlock)handler;
+- (UITapGestureRecognizer *)doubleTapWithhandler:(GestureBlock)handler;
 
 - (void)panWithHandler:(GestureBlock)handler;
+
+- (void)pinchWithHandler:(GestureBlock)handler;
+
+- (void)swipeWithHandler:(GestureBlock)handler withDirection:(UISwipeGestureRecognizerDirection)direction;
 
 @end
 
@@ -102,7 +106,7 @@ typedef id _Nullable (^NodeForAnchorCallback)(id renderer, ARAnchor *anchor);
 /**
  节点改变回调
  */
-typedef void (^NodeChangeCallback)(id renderer, id node, ARPlaneAnchor *anchor);
+typedef void (^NodeChangeCallback)(id renderer, id node, ARAnchor *anchor);
 
 /**
  会话帧更新回调
@@ -302,6 +306,29 @@ typedef void (^SessionObserverCallback)(ARSession *session, id _Nullable object)
          doubleTap:(GestureBlock)doubleTap
                pan:(GestureBlock)pan
              pinch:(GestureBlock)pinch
+            target:(UIView *)target;
+
+/**
+ 绑定事件到目标视图上
+
+ @param singleTap 单击
+ @param doubleTap 双击
+ @param pan 拖拽
+ @param pinch 缩放
+ @param swipeUp 上滑
+ @param swipeLeft 左滑
+ @param swipeDown 下滑
+ @param swipeRight 右滑
+ @param target 目标视图
+ */
+- (void)bindAction:(GestureBlock)singleTap
+         doubleTap:(GestureBlock)doubleTap
+               pan:(GestureBlock)pan
+             pinch:(GestureBlock)pinch
+         swipeLeft:(GestureBlock)swipeLeft
+        swipeRight:(GestureBlock)swipeRight
+           swipeUp:(GestureBlock)swipeUp
+         swipeDown:(GestureBlock)swipeDown
             target:(UIView *)target;
 
 /**

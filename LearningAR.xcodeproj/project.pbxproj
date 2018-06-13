@@ -18,9 +18,11 @@
 		5436AA29204293BF00E8CBA3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5436AA27204293BF00E8CBA3 /* LaunchScreen.storyboard */; };
 		5436AA2C204293BF00E8CBA3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5436AA2B204293BF00E8CBA3 /* main.m */; };
 		5436AA392042987300E8CBA3 /* ARHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 5436AA382042987300E8CBA3 /* ARHelper.m */; };
+		5437129320D0E28B00CECE37 /* SCNGeometry+Description.m in Sources */ = {isa = PBXBuildFile; fileRef = 5437129220D0E28B00CECE37 /* SCNGeometry+Description.m */; };
 		5456FFDE20CFA2D3007815C6 /* ARVirtualPlane.m in Sources */ = {isa = PBXBuildFile; fileRef = 5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */; };
 		54C6E3B32043799C0070C917 /* ARBaseController.m in Sources */ = {isa = PBXBuildFile; fileRef = 54C6E3B22043799C0070C917 /* ARBaseController.m */; };
 		54C6E3DC204385520070C917 /* Scene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 54C6E3DB204385510070C917 /* Scene.sks */; };
+		54CD1E9E20D106F0002C8E65 /* ARDescUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 54CD1E9D20D106F0002C8E65 /* ARDescUtil.m */; };
 		54F11800204455D400E5B1A0 /* Scene.m in Sources */ = {isa = PBXBuildFile; fileRef = 54F117FE204455D400E5B1A0 /* Scene.m */; };
 		54F118042044590600E5B1A0 /* IMG_0444.JPG in Resources */ = {isa = PBXBuildFile; fileRef = 54F118032044590600E5B1A0 /* IMG_0444.JPG */; };
 /* End PBXBuildFile section */
@@ -42,11 +44,15 @@
 		5436AA382042987300E8CBA3 /* ARHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARHelper.m; sourceTree = "<group>"; };
 		5436AA3E20429BDB00E8CBA3 /* SceneKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SceneKit.framework; path = System/Library/Frameworks/SceneKit.framework; sourceTree = SDKROOT; };
 		5436AA3F20429BE000E8CBA3 /* SpriteKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SpriteKit.framework; path = System/Library/Frameworks/SpriteKit.framework; sourceTree = SDKROOT; };
+		5437129120D0E28B00CECE37 /* SCNGeometry+Description.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SCNGeometry+Description.h"; sourceTree = "<group>"; };
+		5437129220D0E28B00CECE37 /* SCNGeometry+Description.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SCNGeometry+Description.m"; sourceTree = "<group>"; };
 		5456FFDC20CFA2D3007815C6 /* ARVirtualPlane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARVirtualPlane.h; sourceTree = "<group>"; };
 		5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARVirtualPlane.m; sourceTree = "<group>"; };
 		54C6E3B12043799C0070C917 /* ARBaseController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARBaseController.h; sourceTree = "<group>"; };
 		54C6E3B22043799C0070C917 /* ARBaseController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARBaseController.m; sourceTree = "<group>"; };
 		54C6E3DB204385510070C917 /* Scene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Scene.sks; sourceTree = "<group>"; };
+		54CD1E9C20D106F0002C8E65 /* ARDescUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARDescUtil.h; sourceTree = "<group>"; };
+		54CD1E9D20D106F0002C8E65 /* ARDescUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ARDescUtil.m; sourceTree = "<group>"; };
 		54F117FE204455D400E5B1A0 /* Scene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Scene.m; sourceTree = "<group>"; };
 		54F117FF204455D400E5B1A0 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
 		54F118032044590600E5B1A0 /* IMG_0444.JPG */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_0444.JPG; sourceTree = "<group>"; };
@@ -95,6 +101,10 @@
 				54C6E3B22043799C0070C917 /* ARBaseController.m */,
 				5456FFDC20CFA2D3007815C6 /* ARVirtualPlane.h */,
 				5456FFDD20CFA2D3007815C6 /* ARVirtualPlane.m */,
+				5437129120D0E28B00CECE37 /* SCNGeometry+Description.h */,
+				5437129220D0E28B00CECE37 /* SCNGeometry+Description.m */,
+				54CD1E9C20D106F0002C8E65 /* ARDescUtil.h */,
+				54CD1E9D20D106F0002C8E65 /* ARDescUtil.m */,
 				5436AA1D204293BF00E8CBA3 /* art.scnassets */,
 				5436AA1F204293BF00E8CBA3 /* ViewController.h */,
 				5436AA20204293BF00E8CBA3 /* ViewController.m */,
@@ -197,9 +207,11 @@
 				54F11800204455D400E5B1A0 /* Scene.m in Sources */,
 				5436AA392042987300E8CBA3 /* ARHelper.m in Sources */,
 				5436AA21204293BF00E8CBA3 /* ViewController.m in Sources */,
+				5437129320D0E28B00CECE37 /* SCNGeometry+Description.m in Sources */,
 				5436AA2C204293BF00E8CBA3 /* main.m in Sources */,
 				5456FFDE20CFA2D3007815C6 /* ARVirtualPlane.m in Sources */,
 				54C6E3B32043799C0070C917 /* ARBaseController.m in Sources */,
+				54CD1E9E20D106F0002C8E65 /* ARDescUtil.m in Sources */,
 				5436AA1C204293BF00E8CBA3 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
